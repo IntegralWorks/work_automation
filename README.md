@@ -18,3 +18,7 @@ Development process:
 I. CLI-only app is ver 0.x and *must* contain the core functionality needed to save time at work. The program should work well enough that the worst-case scenario--being that there is not enough time to stop testing to develop automation software--the script will still save sizeable time.
 II. First ver at 1.x will have a basic GUI. Should continue to save time while being non-developer friendly.
 III. Scripts or programs that make it to 2.0.x mean that only bug fixes apply, 2.x.y or z.x.y means it is a more generally extensible program that I aim to add proper licensing to and open source to its own repository.
+
+ROADMAP:
+I. Added "minimal viable" support for .gif and .mp4 files (fufilled feature request at work).
+II. Next up is probably basic GUI.

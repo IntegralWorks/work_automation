@@ -27,3 +27,7 @@ ROADMAP:
 I. Added "minimal viable" support for .gif and .mp4 files (fufilled feature request at work).
 
 II. Next up is probably basic GUI.
+
+---------------------------------------------------------------------------------------------------------------------------------------
+# findmp4s.py
+At work we now use a tool called Snaggit(TM) to take videos of the scope. Right now, yauoscreenshot is somewhat shelved although there's a few features Snaggit does not have that I'm certain I could implment through pyautoscreenshot, but at work there are more pressing things to automate. Namely, recursively taking mp4 files and speeding them up fourfold. This handy little script cobbles together two SO answers and some special F'string sauce to tap into FFMPEG's tried-and-tested powers.

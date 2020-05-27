@@ -40,3 +40,8 @@ I got an inspiration to make a general purpose script after realizing I needed t
 * prompt a menu to ask if the user wants to speed up all mp4 files or delete them
 
 I have some other ideas, but for now this is something we really need at work and I just don't want to lose this idea.
+
+---------------------------------------------------------------------------------------------------------------------------------------
+# trc_to_csv.py (version ~.0.2)
+Tentative title
+Takes .trc CAN bus data and vectorizes to numpy, plots to mplt, exports plots to excel

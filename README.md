@@ -1,21 +1,25 @@
+# VISA_AUTOMATION
+Progress:Can now trigger a scope and gather all channel data in seconds (or gather all channel data from a scope that is already triggered). Feature to-do list: simultaneous triggering, automated instrument detection, and a basic GUI in either PySimpleGUI or Dear PyGui.
+
+---------------------------------------------------------------------------------------------------------------------------------------
+# FFMPEG_Scripts
+Could also be called "mp4 scripts". Scripts for routine operations (muting/speeding up/deletion).
+
+---------------------------------------------------------------------------------------------------------------------------------------
+# zero-cross-automation
+Seeks out the zero-crosses of sinusoidal and/or square wave voltage waveforms. WIP and the latest version is on company device.
+
+---------------------------------------------------------------------------------------------------------------------------------------
+# LTSpice_scripts
+Currently a lone script, upon receiving more LTSpice tasks will write some more code. 
+
+---------------------------------------------------------------------------------------------------------------------------------------
+#CAN_bus
+Another lone script. In the future we will be crunching tons of CAN data and will need to write a data science program.
+
+---------------------------------------------------------------------------------------------------------------------------------------
 # autoscreenshotpy (depreciated)
 
-Was a clever script while it lasted, but Snaggit ended up taking care of "record the scope" needs at the time. Now, I am shifting the team to use matplotlib more and eventually we will only need cursory screenshots of waveforms complementing mostly matplotlib videos/images.
+Was a clever script while it lasted (there was a period where the only available computer was an xp laptop running python 3.3), but Snaggit ended up taking care of "record the scope" needs at the time. Now, I am shifting the team to use matplotlib more and eventually we will only need cursory screenshots of waveforms complementing mostly matplotlib videos/images.
 
 ---------------------------------------------------------------------------------------------------------------------------------------
-# findmp4s.py
-At work we now use a tool called Snaggit(TM) to take videos of the scope. Right now, pyautoscreenshot is somewhat shelved although there's a few features Snaggit does not have that I'm certain I could implement through pyautoscreenshot (basically I want to set profiles because we take the same kind of screenshot multiple times a day), but at work there are more pressing things to automate. Namely, recursively taking mp4 files and speeding them up fourfold. This handy little script cobbles together two SO answers and some special F'string sauce to tap into FFMPEG's tried-and-tested powers.
-
----------------------------------------------------------------------------------------------------------------------------------------
-# delete_mp4s.py
-I got an inspiration to make a general purpose script after realizing I needed to clean out all the files recursively from a parent dir and its children. "findmp4s" and "delete_mp4s" will be the foundation for the following:
-
-* Use sysargv to ask user what type of file type they want to manipulate
-* prompt a menu to ask if the user wants to speed up all mp4 files or delete them
-
-I have some other ideas, but for now this is something we really need at work and I just don't want to lose this idea.
-
----------------------------------------------------------------------------------------------------------------------------------------
-# trc_to_csv.py (version ~.0.2)
-Tentative title
-Takes .trc CAN bus data and vectorizes to numpy, plots to mplt, exports plots to excel

@@ -1,4 +1,4 @@
-# pyautoscreenshot (depreciated)
+# autoscreenshotpy (depreciated)
 
 Was a clever script while it lasted, but Snaggit ended up taking care of "record the scope" needs at the time. Now, I am shifting the team to use matplotlib more and eventually we will only need cursory screenshots of waveforms complementing mostly matplotlib videos/images.
 

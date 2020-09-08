@@ -1,6 +1,8 @@
 # VISA_AUTOMATION
 Progress:Can now trigger a scope and gather all channel data in seconds (or gather all channel data from a scope that is already triggered). Feature to-do list: simultaneous triggering, automated instrument detection, and a basic GUI in either PySimpleGUI or Dear PyGui.
 
+Also need to implement GUI for setLabelandScale.py
+
 ---------------------------------------------------------------------------------------------------------------------------------------
 # generalDataScience
 I have some "throwaway" scripts laying around my company device (who doesn't) the ones that are particularly useful, noteworthy, or liable to get lost go here. Will need to put a table of contents here since some are highly contextual (ex. processData.py makes zero sense unless you know it's extremely specific to ".csv output from Tektronix MDO3000 series oscilloscopes").

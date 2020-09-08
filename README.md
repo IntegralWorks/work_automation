@@ -24,8 +24,10 @@ Currently a lone script, upon receiving more LTSpice tasks will write some more 
 Another lone script. In the future we will be crunching tons of CAN data and will need to write a data science program.
 
 ---------------------------------------------------------------------------------------------------------------------------------------
-# autoscreenshotpy (depreciated)
+# autoscreenshotpy ~~(depreciated)
 
 Was a clever script while it lasted (there was a period where the only available computer was an xp laptop running python 3.3), but Snaggit ended up taking care of "record the scope" needs at the time. Now, I am shifting the team to use matplotlib more and eventually we will only need cursory screenshots of waveforms complementing mostly matplotlib videos/images.
+
+Update(09/08/2020): I am going to refit this with VISA so that I can autonomously take pictures of each part of the waveform given some condition.
 
 ---------------------------------------------------------------------------------------------------------------------------------------

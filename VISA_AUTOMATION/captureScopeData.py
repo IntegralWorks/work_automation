@@ -10,8 +10,10 @@ import time # std module
 import pyvisa as visa# http://github.com/hgrecco/pyvisa
 import matplotlib.pyplot as plt # http://matplotlib.org/
 import numpy as np # http://www.numpy.org/
+import pandas as pd
+from io import StringIO
 
-visa_address = 'TCPIP0::169.254.7.101::inst0::INSTR'
+visa_address = 'TCPIP0::169.254.8.227::INSTR'
 
 rm = visa.ResourceManager()
 scope = rm.open_resource(visa_address)
@@ -27,11 +29,9 @@ print(scope.query('*idn?'))
 # prompt
 input("""
 ACTION:
-Connect probe to oscilloscope Channel 1 and the probe compensation signal.
-
-Press Enter to continue...
+Press Enter to begin.
 """)
-
+scope.write(f':SEARCH:SEARCH1:STATE 0')
 # default setup
 #scope.write('*rst')
 t1 = time.perf_counter()
@@ -70,10 +70,12 @@ def dataQuery(num):
     t7 = time.perf_counter()
     bin_wave = scope.query_binary_values('curve?', datatype='b', container=np.array)
     t8 = time.perf_counter()
-    print(f'CH{num}transfer time: {t8 - t7} s')
+    print(f'CH{num} transfer time: {t8 - t7} s')
     return bin_wave
 CH1_binWave = dataQuery(1)
 CH2_binWave = dataQuery(2)
+CH3_binWave = dataQuery(3)
+CH4_binWave = dataQuery(4)
 
 # retrieve scaling factors
 wfm_record = int(scope.query('wfmoutpre:nr_pt?'))
@@ -90,9 +92,54 @@ print('event status register: 0b{:08b}'.format(r))
 r = scope.query('allev?').strip()
 print('all event messages: {}'.format(r))
 
-# disconnect
-scope.close()
-rm.close()
+#get misc info
+
+# channelInfo = []
+# for i in range (1,5):
+#     f'CH{i}:'+'label?'
+#     f'CH{i}:'+'probe:ID?'
+#     f'CH{i}:'+'probe?'
+#     f'CH{i}:'+'scale?'
+#     # chStrs = [f'CH{i}:'+'label',]
+
+#     # label = scope.query(:label?')
+#     # robe = scope.query(f'CH{')
+
+# # disconnect
+
+def closeObjects():
+    scope.close()
+    rm.close()
+
+def XCross(*args):
+    xcData = {}
+    CH_list = ['CH1','CH2','CH3','CH4']
+    for CH in args:
+        CH_list.pop(CH_list.index(f'{CH}'))
+        scope.write(f'select:{CH_list[0]} 0')
+        scope.write(f'select:{CH_list[1]} 0')
+        scope.write(f'select:{CH_list[2]} 0')
+        scope.write(f'select:{CH} 1')
+        CH_list.append(CH)
+
+        scope.write(f':SEARCH:SEARCH1:TRIGger:A:EDGE:SOUrce {CH}')
+        scope.write(f':SEARCH:SEARCH1:TRIGger:A:LOWerthreshold:{CH} 0')
+        scope.write(f':SEARCH:SEARCH1:TRIGger:A:EDGE:SLOpe EITHER')
+        scope.write(f':SEARCH:SEARCH1:STATE 1')
+        time.sleep(5)
+        scope.write('mark:saveall touser')
+        tmpstr = StringIO(scope.query('mark:userlist?').replace(';','\n'))
+        time.sleep(3)
+        df = pd.read_csv(tmpstr, index_col=0, header=None)
+        xcData[CH] = df[4]
+    scope.write(f'select:{CH_list[0]} 1')
+    scope.write(f'select:{CH_list[1]} 1')
+    scope.write(f'select:{CH_list[2]} 1')
+    return xcData
+
+xcData = XCross('CH1','CH2','CH3','CH4')
+
+# closeObjects()
 
 # create scaled vectors
 # horizontal (time)
@@ -108,29 +155,48 @@ def transcribeWaves(wave):
     return scaled_wave
 CH1 = transcribeWaves(CH1_binWave)
 CH2 = transcribeWaves(CH2_binWave)
+CH3 = transcribeWaves(CH3_binWave)
+CH4 = transcribeWaves(CH4_binWave)
 
-def classicGraph():
-    plt.plot(scaled_time, CH1)
-    plt.plot(scaled_time, CH2)
-    plt.title('channel 1 and channel 2') # plot label
-    plt.xlabel('time (seconds)') # x label
-    plt.ylabel('voltage (volts)') # y label
-    print("look for plot window...")
-    plt.show()
+channelDict = {
+'CH1':CH1,
+'CH2':CH2,
+'CH3':CH3,
+'CH4':CH4
+}
 
 def graph(time, *args):
     title = []
     for i in args:
         plt.plot(time, i)
-        title.append('Placeholder_text')
     plt.xlabel('time (seconds)')
     plt.ylabel('voltage (volts)')
     plt.show()
 
+def xcGraph(time, xcDict, chDict, mrksize, mrkshape, *args):
+    title = []
+    colorDict = {
+    'CH1':['yellow','red'],
+    'CH2':['cyan','teal'],
+    'CH3':['purple','magenta'],
+    'CH4':['green','black']
+    }
+    for i in args:
+        plt.plot(time, chDict[f'CH{i}'],color=colorDict[f'CH{i}'][0],zorder=1)
+        plt.scatter(xcDict[f'CH{i}'],np.zeros(len(xcDict[f'CH{i}'])), np.ones(len(xcDict[f'CH{i}']))*mrksize, color=colorDict[f'CH{i}'][1], marker=mrkshape, zorder=2)
+    plt.show()
 
+# xcGraph(scaled_time, xcData, channelDict, 200, '.', *[1,2,3,4])
+# xcGraph(scaled_time, xcData, channelDict, 400, '1', *[1,2,3,4])
 
-timestamp = f'{dt.datetime.now().strftime("%x")}_{dt.datetime.now().strftime("%X")}'
-np.save(f'{sys.argv[2]}_{timestamp}',CH1)
-np.save(f'{sys.argv[2]}_{timestamp}',CH2)
+def saveData():
+    timestamp = f'{dt.datetime.now().strftime("%x")}_{dt.datetime.now().strftime("%X")}'
+    np.save(f'TIME_{sys.argv[2]}_{timestamp.replace(":","-").replace("/","-")}',scaled_time)
+    np.save(f'CH1_{sys.argv[2]}_{timestamp.replace(":","-").replace("/","-")}',CH1)
+    np.save(f'CH2_{sys.argv[2]}_{timestamp.replace(":","-").replace("/","-")}',CH2)
+    np.save(f'CH3_{sys.argv[2]}_{timestamp.replace(":","-").replace("/","-")}',CH3)
+    np.save(f'CH4_{sys.argv[2]}_{timestamp.replace(":","-").replace("/","-")}',CH4)
+
+#saveData()
+
 print("\nend of demonstration")
-

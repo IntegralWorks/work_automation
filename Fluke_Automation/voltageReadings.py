@@ -3,6 +3,17 @@ import sys, string, csv
 from time import sleep
 #https://electronics.stackexchange.com/questions/249531/reading-a-number-of-voltage-samples-with-fluke-8845a
 
+#call it like this: py automatedFluke.py csvFilename topMeter BottomMeter [0,1,2,3,5,10]
+
+def generateFields():
+    l = []
+    for i in sys.argv[-1].split(','):
+        l.append(f'{sys.argv[2]+i}A')
+        l.append(f'{sys.argv[3]+i}A')
+    return l
+
+fields = generateFields()
+
 rm = visa.ResourceManager()
 
 topMeter = rm.open_resource('ASRL6::INSTR')
@@ -23,12 +34,8 @@ def getVoltageValues(inst):
     inst.query('*OPC?')
     #inst.query(':FETCH?')
 
-#first you call getVoltageValues(inst_referenced).
-#then you call A = inst_referenced.query('fetch')
-#rinse and repeat, Until you get your A,B,C...whenever.
-
-def fetchValues(inst1,inst2,n):
-    fields = sys.argv[2:]
+def fetchValues(inst1,inst2,n,fields):
+    fields = fields
     values = {}
     counter = 0
     flag = False
@@ -44,7 +51,7 @@ def fetchValues(inst1,inst2,n):
         counter+=1
         print(f'counter before: {counter} after: {counter}')
 
-        if counter==n:
+        if counter==n or counter>n:
             print(f'Done fetching values at counter value: {counter}')
             flag = True
 
@@ -52,13 +59,13 @@ def fetchValues(inst1,inst2,n):
         
     return values
 
-values = fetchValues(topMeter, bottomMeter, len(sys.argv[2:]))
+values = fetchValues(topMeter, bottomMeter, len(fields), fields)
 
-def writeCsv(d):
-    keys = sys.argv[2:]
+def writeCsv(d, fields):
+    keys = fields
     with open(f'{sys.argv[1]}.csv', "w", newline='') as outfile:
         writer = csv.writer(outfile, delimiter = ",")
         writer.writerow(keys)
         writer.writerows(zip(*[d[key] for key in keys]))
 
-writeCsv(values)
+writeCsv(values,fields)

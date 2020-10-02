@@ -1,6 +1,6 @@
 import pyvisa as visa
-import sys, string, csv
-from time import sleep
+import sys, csv
+
 #https://electronics.stackexchange.com/questions/249531/reading-a-number-of-voltage-samples-with-fluke-8845a
 
 #call it like this: py automatedFluke.py csvFilename topMeter BottomMeter 0,1,2,3,5,10
@@ -42,7 +42,6 @@ def fetchValues(inst1,inst2,n,fields):
     print(f'fetchValues(..) called. Commencing SCPI commands. Counter: {counter}')
     while flag != True:
         getVoltageValues(inst1)
-        sleep(.001)
         getVoltageValues(inst2)
 
         values[fields[counter]] = inst1.query('fetch?').replace('\r\n','').split(',')

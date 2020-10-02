@@ -3,7 +3,7 @@ import sys, string, csv
 from time import sleep
 #https://electronics.stackexchange.com/questions/249531/reading-a-number-of-voltage-samples-with-fluke-8845a
 
-#call it like this: py automatedFluke.py csvFilename topMeter BottomMeter [0,1,2,3,5,10]
+#call it like this: py automatedFluke.py csvFilename topMeter BottomMeter 0,1,2,3,5,10
 
 def generateFields():
     l = []

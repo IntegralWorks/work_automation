@@ -58,11 +58,11 @@ with mss.mss() as sct:
         if keep:
             plt.imshow(Image.open('tmp.png'))
             plt.axis('off')
-            plt.text(378, 30, label, size=5, rotation=0,
-             ha="center", va="center",
-             bbox=dict(boxstyle="round",
-                       ec=(1., 0.5, 0.5),
-                       fc=(1., 0.8, 0.8),
+            plt.text(378, 30, label, size=10, rotation=0,
+             ha="center", va="center", c='white',
+             bbox=dict(boxstyle="round", fc='black', ec='grey',
+                       # ec=(1., 0.5, 0.5),
+                       # fc=(1., 0.8, 0.8),
                        )
              )
             pic = io.BytesIO()

@@ -5,8 +5,13 @@ import PySimpleGUI as sg
 import win32clipboard
 from PIL import Image
 import io
+import matplotlib
+matplotlib.use('Cairo') #resolves backend performance issues
 import matplotlib.pyplot as plt
 import xlsxwriter as excel
+import string
+import datetime as dt
+import pretty_errors
 
 #py something.py 2 201 320 800 480 Sheet1 Label1
 
@@ -35,49 +40,64 @@ with mss.mss() as sct:
     layout = [ [sg.Button('Copy to Clipboard'), sg.Button('Export')], 
             [pic], 
             [sg.Button('Screenshot'), sg.Button('Next')],
-            [sg.Button('Change Image Label'), sg.InputText(f'{sys.argv[6]}', key='-Image Label-'), sg.Button('Change Sheet Label'), sg.InputText(f'{sys.argv[7]}', key='-Sheet Label-')]]
+            [sg.Button('Change Sheet Label'), sg.InputText(f'{sys.argv[6]}', key='-Sheet Label-', size=(15,1)), sg.Button('Change Image Label'), sg.Button('Change and Screenshot'), sg.InputText(f'{sys.argv[7]}', key='-Image Label-', size=(15,1))],
+            [sg.Text('Note: The following characters are forbidden: []:*?/\\')] ]
+            #[sg.Text('Column', size=(15, 1)), sg.Spin(values=[i for i in range(1, 1000)], initial_value=1, size=(6, 1))] ]
 
     window = sg.Window('Window Title', layout)
 
-    images = [[]]
-    index = 0
-    sheets = [sys.argv[6]] #starting sheet value
-    labels = [sys.argv[7]] #starting label value
+    sheet = sys.argv[6] #starting sheet value
+    sheets = {}
+    sheets[sheet] = []  #images go here -- new sheet? new set of images
+    label = sys.argv[7] #starting label value
 
-    def screenshot(index=0, label='Sample', keep = True):
+    def screenshot(label='Sample', sheet = sys.argv[6], keep = True):
         sct_img = sct.grab(monitor)
         mss.tools.to_png(sct_img.rgb, sct_img.size, output='tmp.png')
         if keep:
             plt.imshow(Image.open('tmp.png'))
             plt.axis('off')
-
-            plt.text(0.6, 0.7, f"{label}", size=50, rotation=15.,
+            plt.text(50, 30, label, size=10, rotation=0,
              ha="center", va="center",
              bbox=dict(boxstyle="round",
                        ec=(1., 0.5, 0.5),
                        fc=(1., 0.8, 0.8),
                        )
              )
-
-            
             pic = io.BytesIO()
             plt.savefig(pic, pad_inches = 0, bbox_inches = 'tight', format='png')
-            images[index].append(pic)
+            sheets[sheet].append(pic)
+            plt.close()
 
-    def export(index = 0):
+    def export(label = 0):
         try:
-            image[0][0]
-        except NameError:
+            sheets[sys.argv[6]][0]
+        except IndexError:
             sg.Popup('Data not found--take a screenshot first')
             return
-        counter = 1
+
         filename = 'dummy.png'
-        workbook = excel.Workbook('_'.join(sheets)+'.xlsx')
-        for k in sheets:
+        timestamp = f'{dt.datetime.now().strftime("%x")}_{dt.datetime.now().strftime("%X")}'
+        timestamp = timestamp.replace(":","-").replace("/","-")
+        workbook = excel.Workbook(timestamp+'.xlsx')
+        for k in sheets.keys():
             worksheet = workbook.add_worksheet(k)
-            for i in images[index]:
-                worksheet.insert_image(f'A{counter}', filename, {'image_data' : i})
-                counter +=31
+            counter = 1
+            index = 0
+            alphabet = list(string.ascii_uppercase)
+            for i in sheets[k]:
+                worksheet.insert_image(f'{alphabet[index]}{counter}', filename, {'image_data' : i})
+                counter +=20
+                if counter > 60:
+                    index += 9
+                    counter = 1
+                    if index > 25:
+                        alphabet = []
+                        for i in list(string.ascii_uppercase):
+                            for j in list(string.ascii_uppercase):
+                                alphabet.append(i+j)
+                        index = 0
+                        counter = 1
         workbook.close()
 
 
@@ -105,14 +125,24 @@ with mss.mss() as sct:
             export()
 
         if event == 'Screenshot':
-            screenshot(index, labels[index], keep = True)
+            screenshot(label, sheet, keep = True)
             pic.Update('tmp.png')
 
         if event == 'Next':
-            screenshot(index, labels[index], keep = False)
+            screenshot(keep = False)
             pic.Update('tmp.png')
 
         if event == 'Change Image Label':
-            pass
+            label = values['-Image Label-']
+            print(label)
+        if event == 'Change and Screenshot':
+            label = values['-Image Label-']
+            print(label)
+            screenshot(label, sheet, keep = True)
+            pic.Update('tmp.png')
         if event == 'Change Sheet Label':
-            pass
+            sheet = values['-Sheet Label-'] 
+            sheets[sheet] = []
+            print(sheet)
+
+

@@ -13,7 +13,8 @@ import string
 import datetime as dt
 import pretty_errors
 
-#py something.py 2 201 320 800 480 Sheet1 Label1
+#py something.py 2 201 320 800 480 Sheet1 Label1 //for the validation lab
+#py something.py 2 201 275 800 480 Sheet1 Label1 //for the CPN lab
 
 def send_to_clipboard(clip_type, data):
     win32clipboard.OpenClipboard() #https://stackoverflow.com/questions/34322132/copy-image-to-clipboard
@@ -40,7 +41,7 @@ with mss.mss() as sct:
     layout = [ [sg.Button('Copy to Clipboard'), sg.Button('Export')], 
             [pic], 
             [sg.Button('Screenshot'), sg.Button('Next')],
-            [sg.Button('Change Sheet Label'), sg.InputText(f'{sys.argv[6]}', key='-Sheet Label-', size=(15,1)), sg.Button('Change Image Label'), sg.Button('Change and Screenshot'), sg.InputText(f'{sys.argv[7]}', key='-Image Label-', size=(15,1))],
+            [sg.Button('Change Sheet Label'), sg.InputText(f'{sys.argv[6]}', key='-Sheet Label-', size=(15,1)), sg.Button('Change Image Label'), sg.Button('Change and Screenshot'), sg.InputText(f'{sys.argv[7]}', key='-Image Label-', size=(40,1))],
             [sg.Text('Note: The following characters are forbidden: []:*?/\\')] ]
             #[sg.Text('Column', size=(15, 1)), sg.Spin(values=[i for i in range(1, 1000)], initial_value=1, size=(6, 1))] ]
 
@@ -57,7 +58,7 @@ with mss.mss() as sct:
         if keep:
             plt.imshow(Image.open('tmp.png'))
             plt.axis('off')
-            plt.text(50, 30, label, size=10, rotation=0,
+            plt.text(378, 30, label, size=5, rotation=0,
              ha="center", va="center",
              bbox=dict(boxstyle="round",
                        ec=(1., 0.5, 0.5),
@@ -65,7 +66,7 @@ with mss.mss() as sct:
                        )
              )
             pic = io.BytesIO()
-            plt.savefig(pic, pad_inches = 0, bbox_inches = 'tight', format='png')
+            plt.savefig(pic, pad_inches = 0, bbox_inches = 'tight', format='png', dpi=400)
             sheets[sheet].append(pic)
             plt.close()
 
@@ -82,22 +83,17 @@ with mss.mss() as sct:
         workbook = excel.Workbook(timestamp+'.xlsx')
         for k in sheets.keys():
             worksheet = workbook.add_worksheet(k)
-            counter = 1
+            counter = 0
             index = 0
+            column = 0
             alphabet = list(string.ascii_uppercase)
             for i in sheets[k]:
-                worksheet.insert_image(f'{alphabet[index]}{counter}', filename, {'image_data' : i})
-                counter +=20
-                if counter > 60:
-                    index += 9
-                    counter = 1
-                    if index > 25:
-                        alphabet = []
-                        for i in list(string.ascii_uppercase):
-                            for j in list(string.ascii_uppercase):
-                                alphabet.append(i+j)
-                        index = 0
-                        counter = 1
+                #worksheet.insert_image(f'{alphabet[index]}{counter}', filename, {'image_data' : i})
+                worksheet.insert_image(counter, column, filename, {'image_data' : i})
+                counter += 60
+                if counter > 179:
+                    column += 32
+                    counter = 0
         workbook.close()
 
 
@@ -144,5 +140,3 @@ with mss.mss() as sct:
             sheet = values['-Sheet Label-'] 
             sheets[sheet] = []
             print(sheet)
-
-

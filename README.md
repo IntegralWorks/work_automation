@@ -20,6 +20,11 @@ TO-DO:
   V. Might make a GUI.
   
 * Document "Fluke Automation"
+
+---------------------------------------------------------------------------------------------------------------------------------------
+# autoscope
+A WIP general purpose task automator for my work. It uses VISA to directly gather image data and automatically set labels/voltage scalings. It is the combination of a re-do of autoscreenshot.py and setLabelsAndScale.py. Even in its WIP state, it's already immensely useful.
+
 ---------------------------------------------------------------------------------------------------------------------------------------
 # generalDataScience
 I have some "throwaway" scripts laying around my company device (who doesn't) the ones that are particularly useful, noteworthy, or liable to get lost go here. Will need to put a table of contents here since some are highly contextual (ex. processData.py makes zero sense unless you know it's extremely specific to ".csv output from Tektronix MDO3000 series oscilloscopes").

@@ -130,7 +130,7 @@ def fetchLabelMenu():
 
 tab1_layout = [[sg.Button('Copy to Clipboard'), sg.Button('Export')],
         [pic],
-        [sg.Button('Screenshot'), sg.Button('Next'), sg.Button('Toggle Label')],
+        [sg.Button('Screenshot'), sg.Button('Next'), sg.Button('Toggle Label ON/OFF'), ],
         [sg.Button('Change Sheet Label'), sg.InputText(f'', key='-Sheet Label-', size=(15,1)), sg.Button('Change Image Label And Screenshot'), sg.InputText(f'', key='-Image Label-', size=(35,1))],
         [sg.Button('Adjust Label Position'), sg.In(label_xpos, key='xpos'), sg.In(label_ypos, key='ypos')],
         [sg.Text('Note: The following characters are forbidden: []:*?/\\')]]
@@ -155,6 +155,12 @@ window['ch_view'].update(data = decodeAndConvert_base64String(fetch_base64Image(
 while True:
     event, values = window.read()
     if event in (None, 'Cancel'):   # if user closes window or clicks cancel
+        timestamp = f'{dt.datetime.now().strftime("%x")}_{dt.datetime.now().strftime("%X")}'
+        timestamp = timestamp.replace(":","-").replace("/","-")
+        f = open(f'{timestamp}_backup.txt', 'w')
+        for i in clipboard_history:
+            f.write(str(i)+'\n')
+        f.close()
         break
 
     if event == 'Copy to Clipboard':
@@ -171,7 +177,11 @@ while True:
         screenshot(keep = False)
         nextFlag = True
 
-    if event == 'Toggle Label':
+    # if event == 'Toggle Label':
+    #     flag = bool(int(scope.query('message:state?').replace('\n','')))
+    #     screenshot(keep = False)
+
+    if event == 'Toggle Label ON/OFF':
         flag = bool(int(scope.query('message:state?').replace('\n','')))
         scope.write(f'message:state {int(not flag)}')
         print(f'flag: {int(flag)} not flag: {int(not flag)}')

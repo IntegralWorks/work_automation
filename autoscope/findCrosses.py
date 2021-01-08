@@ -51,16 +51,24 @@ def decodeAndConvert_base64String(b64_str, memory_mode = False):
         image.save(buffered, format='PNG')
         return buffered
 
-def export(ims):
+def export(ims, m):
     workbook = excel.Workbook('proof_of_concept.xlsx')
     worksheet = workbook.add_worksheet('lol')
     x = 0
     y = 0
-    for i in ims:
+    for n,i in enumerate(ims):
         worksheet.insert_image(x, y, 'dummy.png', {'image_data' : decodeAndConvert_base64String(i, True)})
+        xcopy = x
+        ycopy = y
+        ycopy+=13
+        for v in m[n]:
+            # if ycopy ==12:
+            #     ycopy = 13
+            worksheet.write_row(xcopy, ycopy, v)
+            xcopy+=1
         x += 26
         if x >= 78:
-            y += 14
+            y += 16
             x = 0
     workbook.close()
 
@@ -81,6 +89,39 @@ def scroll():
     scope.write(f'zoom:zoom1:position {scope.query("mark:selected:focus?")}' )
     time.sleep(.500)
     scope.write('*cls')
+
+def setMeasurementChannel(source, CH):
+    scope.write(f'measurement:immed:source{source} {CH}')
+    scope.write('*cls')
+    time.sleep(.100)
+
+
+def takeMeasurement(meas_type, n_ch, CH_A='CH1', CH_B='CH2'):
+    if n_ch == 1:
+        scope.write(f'measurement:immed:type {meas_type}')
+        scope.write('*cls')
+        time.sleep(.100)
+        v = scope.query('measurement:immed:value?')
+        scope.write('*cls')
+        time.sleep(.100)
+        return (meas_type , v)
+    if n_ch == 2:
+        if lower(meas_type) == 'delay':
+            scope.write(f'measurement:immed:source2 {CH_B}')
+            scope.write(f'measurement:immed:{meas_type}')
+            v1 = scope.query('measurement:immed:value?')
+            scope.write('*cls')
+            time.sleep(.100)
+            scope.write(f'measurement:immed:source1 {CH_B}')
+            scope.write(f'measurement:immed:source2 {CH_A}')
+            v2 = scope.query('measurement:immed:value?')
+            scope.write('*cls')
+            time.sleep(.100)
+            setMeasurementChannel(1, "CH1")
+            return (meas_type+f'{CH_A},{CH_B};{CH_A},{CH_B}', (v1,v2))
+
+
+
 
 # def scroll():
 #     positions = range(1, int(scope.query('mark:total?')))
@@ -104,7 +145,7 @@ def seekCursor1Cross(targetPattern):
     print(f"CURSOR A: {value}")
     if value == 0.0:
         scope.write('*cls')
-        time.sleep(.350)
+        time.sleep(.150)
         return False
     else:
         return True
@@ -121,10 +162,12 @@ def seekCursor2Cross(targetPattern):
     else:
         return True
     scope.write('*cls')
-backup = []
+
 def findCrosses():
+    setMeasurementChannel(1, 'CH1')
     resetScrolling()
     l = []
+    measurements = []
     scope.write('*CLS')
     scope.write('SEARCH:SEARCH1:STATE ON')
     scope.write(f'SEARCH:SEARCH1:TRIGger:A:LEVel:CH1 0')
@@ -142,10 +185,12 @@ def findCrosses():
     successfulValues = []
     targetPattern = '(.*);(.*);(.*);(.*);(.*);(.*);(.*)'
     status = 0
+    meas_types = ['RMS', 'Frequency']
     for n in range(1, int(scope.query('mark:total?'))):
         scroll()
         cur1Status = True
         cur2Status = False
+        meas = []
         while cur1Status:
             increment(1, initialValues[n-1], incr)
             if not seekCursor1Cross(targetPattern):
@@ -180,9 +225,11 @@ def findCrosses():
         incr = 1e-6
         print('Crosses Found. Screenshotting!')
         l.append(fetch_base64Image())
-        backup.append(fetch_base64Image())
+        meas.append(takeMeasurement(meas_types[0],1))
+        meas.append(takeMeasurement(meas_types[1],1))
+        measurements.append(meas)
     scope.write('SEARCH:SEARCH1:STATE OFF')
-    return l
+    return l, measurements
 
-ims = findCrosses()
-export(ims)
+ims, m = findCrosses()
+export(ims, m)

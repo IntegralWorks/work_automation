@@ -1,3 +1,4 @@
+#TO-DO: THREADING!
 import pyvisa as visa
 import sys, csv
 
@@ -38,20 +39,22 @@ rm = visa.ResourceManager()
 
 leftMeter = rm.open_resource('ASRL9::INSTR')
 leftMeter.baud_rate  = 115200
+leftMeter.timeout  = 100000
 rightMeter = rm.open_resource('ASRL4::INSTR')
 rightMeter.baud_rate  = 115200
+rightMeter.timeout  = 100000
 
 def getVoltageValues(inst):
     inst.write('*cls')
     inst.write('*rst')
-    inst.write('conf:volt:dc 15.0')
-    inst.write('volt:dc:nplc 0.03')
+    inst.write('conf:volt:dc .500') 
+    inst.write('volt:dc:nplc 1') #set significant figures with the values [0.02, 0.2, 1, 10, 100] the higher, the more sig-figs but the slower the sampling is
     inst.write('zero:auto 0')
     inst.write('trig:sour imm')
     inst.write('trig:del 0')
-    inst.write('trig:coun 1')
+    inst.write('trig:coun 1') #if you change '1' with some int n, you will get n*100 record points -- at the cost of speed
     inst.write('syst:rem')
-    inst.write('samp:coun 100')
+    inst.write('samp:coun 100') #don't mess with this without consulting the manual
     inst.write(':INIT')
     inst.query('*OPC?')
     #inst.query(':FETCH?')
@@ -59,21 +62,21 @@ def getVoltageValues(inst):
 def fetchValues(inst1,inst2,n,fields):
     fields = fields
     values = {}
-    field_index = 0
+    counter = 0
     flag = False
-    print(f'fetchValues(..) called. Commencing SCPI commands. Current label: {fields[field_index]}')
+    print(f'fetchValues(..) called. Commencing SCPI commands. Counter: {counter}')
     while flag != True:
         getVoltageValues(inst1)
         getVoltageValues(inst2)
 
-        values[fields[field_index]] = inst1.query('fetch?').replace('\r\n','').split(',')
-        field_index+=1
-        values[fields[field_index]] = inst2.query('fetch?').replace('\r\n','').split(',')
-        field_index+=1
-        print(f'field_index before: {field_index} after: {field_index}')
+        values[fields[counter]] = inst1.query('fetch?').replace('\r\n','').split(',')
+        counter+=1
+        values[fields[counter]] = inst2.query('fetch?').replace('\r\n','').split(',')
+        counter+=1
+        print(f'counter before: {counter} after: {counter}')
 
-        if field_index==n or field_index>n:
-            print(f'Done fetching values for label : {fields[field_index]}')
+        if counter==n or counter>n:
+            print(f'Done fetching values at counter value: {counter}')
             flag = True
 
         input('press enter when the next set of voltage values are ready\n')
